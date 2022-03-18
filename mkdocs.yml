@@ -1,4 +1,5 @@
 site_name: EZReplicator Documentation
 site_url: https://bhristt.github.io/EZReplicator/
+title: EZReplicator
 theme:
   name: material
