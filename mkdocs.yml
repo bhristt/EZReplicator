@@ -13,4 +13,8 @@ nav:
   - Home: index.md
   - Tutorial:
     - Getting started: tutorial/getting_started.md
-    
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
