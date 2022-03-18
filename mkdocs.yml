@@ -1,0 +1,4 @@
+site_name: EZReplicator
+site_url: https://bhristt.github.io/EZReplicator/
+theme:
+  name: material
