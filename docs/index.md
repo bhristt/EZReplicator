@@ -1,4 +1,4 @@
-#Home
+# Home
 
 EZReplicator is a module meant to be required by both the server and client to 
 make replication between server and client less of a hassle.
