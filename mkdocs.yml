@@ -1,5 +1,13 @@
-site_name: EZReplicator Documentation
-site_url: https://bhristt.github.io/EZReplicator/
-title: EZReplicator Documentation
+site_name: EZReplicator
+site_url: https://bhristt.github.io/EZReplicator
+repo_name: bhristt/EZReplicator
+repo_url: https://github.com/bhristt/EZReplicator
+
 theme:
   name: material
+  palette:
+    primary: "Deep Purple"
+    accent: "Deep Purple"
+
+nav:
+  - Home: index.md
