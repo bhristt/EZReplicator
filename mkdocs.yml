@@ -10,11 +10,11 @@ theme:
     accent: "Deep Purple"
 
 nav:
-  - Home: index.md
-  - Tutorial:
-    - Getting started: tutorial/getting_started.md
-    - Basic Subscription usage: tutorial/subscriptions.md
-    - Other usage: tutorial/other_usage.md
+    - Home: index.md
+    - Tutorial:
+      - Getting started: tutorial/getting_started.md
+      - Basic Subscription usage: tutorial/subscriptions.md
+      - Other usage: tutorial/other_usage.md
 
 markdown_extensions:
   - admonition
