@@ -69,6 +69,7 @@ function Subscription.new(propTable: {[string]: any}?)
 	local pself = {}
 	--// setup new subscription object
 	self.Properties = setmetatable(propTable or {}:: {[string]: any}, NO_INDEX_META)
+	self.StoreTablePropertyAsPointer = false
 	--// setup new private subscription object
 	pself.Initialized = false
 	pself.Bindables = {}:: {[string]: BindableEvent}
@@ -84,6 +85,7 @@ function Subscription.new(propTable: {[string]: any}?)
 	return self
 end
 
+
 --// subscription server functions
 --// creates a new property in the given subscription
 --// if the given property name is already a property of the subscription, errors
@@ -93,6 +95,7 @@ function SubscriptionFunc:AddProperty(propIndex: string, propVal: any)
 		local bindables = pself.Bindables
 		local listeners = pself.Listeners
 		local properties = self.Properties
+		local storeTablePropertyAsPointer = self.StoreTablePropertyAsPointer
 		--// fire added and changed bindables
 		local addedBindable = bindables[BINDABLE_EVENT_NAMES.PROPERTY_ADDED]
 		local changedBindable = bindables[BINDABLE_EVENT_NAMES.PROPERTY_CHANGED]
@@ -101,6 +104,9 @@ function SubscriptionFunc:AddProperty(propIndex: string, propVal: any)
 		local property = properties(propIndex)
 		--// check if the property exists in the subscription
 		if property == nil then
+			if type(propVal) == "table" and not storeTablePropertyAsPointer then
+				propVal = Func.CloneTbl(propVal)
+			end
 			rawset(properties, propIndex, propVal)
 			if listener ~= nil then
 				listener:Fire(propVal)
@@ -122,6 +128,7 @@ function SubscriptionFunc:SetProperty(propIndex: string, propVal: any)
 		local bindables = pself.Bindables
 		local listeners = pself.Listeners
 		local properties = self.Properties
+		local storeTablePropertyAsPointer = self.StoreTablePropertyAsPointer
 		--// fire changed bindable
 		local changedBindable = bindables[BINDABLE_EVENT_NAMES.PROPERTY_CHANGED]
 		--// check if a listener was made for the property
@@ -129,7 +136,10 @@ function SubscriptionFunc:SetProperty(propIndex: string, propVal: any)
 		local property = properties(propIndex)
 		--// check that the property exists
 		if property ~= nil then
-			rawset(properties, propIndex, nil)
+			if type(propVal) == "table" and not storeTablePropertyAsPointer then
+				propVal = Func.CloneTbl(propVal)
+			end
+			rawset(properties, propIndex, propVal)
 			if listener ~= nil then
 				listener:Fire(propVal)
 			end
@@ -238,7 +248,7 @@ end
 --// gets a listener for the given property
 --// if a listener is not available for the property, creates a new one
 --// if the property does not exist, errors
-function SubscriptionFunc:GetPropertyChangedSignal(propIndex: string): BindableEvent
+function SubscriptionFunc:GetPropertyChangedSignal(propIndex: string): RBXScriptSignal
 	local pself = private[self]
 	local listeners = pself.Listeners
 	local properties = self.Properties
@@ -250,8 +260,9 @@ function SubscriptionFunc:GetPropertyChangedSignal(propIndex: string): BindableE
 	--// gets or creates a listener for the given property
 	local listener = listeners[propIndex]
 	if listener == nil then
-		Func.StoreNewBindable(listeners, propIndex)
-		listener = listeners[propIndex]
+		listener = Func.StoreNewBindable(listeners, propIndex)
+	else
+		listener = listener.Event
 	end
 	--// return the listener for the given property
 	return listener
