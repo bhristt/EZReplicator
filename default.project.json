@@ -1,0 +1,57 @@
+{
+  "name": "EZReplicator",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "EZReplicator": {
+        "$path": "src/EZReplicator/EZReplicator.lua",
+        "Subscription": {
+          "$path": "src/EZReplicator/Subscription.lua"
+        },
+        "Func": {
+          "$path": "src/EZReplicator/Func.lua"
+        },
+        "Settings": {
+          "$path": "src/EZReplicator/Settings.lua"
+        },
+        "REMOTES": {
+          "$className": "Folder",
+          "SIGNAL": {
+            "$className": "RemoteEvent"
+          },
+          "REQUEST": {
+            "$className": "RemoteFunction"
+          }
+        }
+      }
+    },
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Example1": {
+        "$className": "Folder",
+        "Server": {
+          "$path": "src/Example1/Server.server.lua",
+          "$properties": {
+            "Disabled": true
+          }
+        }
+      }
+    },
+
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst",
+      "Example1": {
+        "$className": "Folder",
+        "Client": {
+          "$path": "src/Example1/Client.client.lua",
+          "$properties": {
+            "Disabled": true
+          }
+        }
+      }
+    }
+  }
+}
