@@ -1,5 +1,5 @@
 --// written by bhristt (march 13 2022)
---// updated: march 13 2022
+--// updated: march 19 2022
 --// a class containing general functions used in the subscription
 --// and replicator classes
 
