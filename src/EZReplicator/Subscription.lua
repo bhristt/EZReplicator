@@ -68,7 +68,7 @@ function Subscription.new(propTable: {[string]: any}?)
 	})
 	local pself = {}
 	--// setup new subscription object
-	self.Properties = setmetatable({}:: {[string]: any}, NO_INDEX_META)
+	self.Properties = setmetatable(propTable or {}:: {[string]: any}, NO_INDEX_META)
 	--// setup new private subscription object
 	pself.Initialized = false
 	pself.Bindables = {}:: {[string]: BindableEvent}

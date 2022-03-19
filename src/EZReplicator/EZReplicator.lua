@@ -293,7 +293,8 @@ function ReplicatorFunctions:GetServerSignal(signalName: string): RBXScriptSigna
 		local listener = signalListeners[signalName]
 		if listener == nil then
 			listener = Func.StoreNewBindable(signalListeners, signalName)
-			
+        else
+            listener = listener.Event
 		end
 		return listener
 	else
