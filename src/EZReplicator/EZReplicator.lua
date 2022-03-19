@@ -265,17 +265,13 @@ end
 --// will send a signal to the client to request data,
 --// then the client will send a signal with the data
 --// back to the server
-function ReplicatorFunctions:RequestDataFromClient(player: Player, dataKey: string, ...: any)
+function ReplicatorFunctions:RequestDataFromClient(player: Player, dataKey: string, ...: any): (boolean, any)
 	if IS_SERVER then
 		local args = {...}
 		local success, result = pcall(function()
 			return request:InvokeClient(player, CLIENT_REQUESTS.RECEIVE_CUSTOM_REQUEST_FROM_SERVER, dataKey, unpack(args))
 		end)
-		if success then
-			return result
-		else
-			error(string.format(ERRORS.CLIENT_DATA_REQUEST_FAILED, "Failed to request for data from the client, was the client handler defined?"))
-		end
+		return success, result
 	else
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:RequestDataFromClient()"))
 	end
@@ -326,17 +322,13 @@ end
 --// will send a signal to the server to request data,
 --// then the server will send a signal with the data
 --// back to the client
-function ReplicatorFunctions:RequestDataFromServer(dataKey: string, ...: any)
+function ReplicatorFunctions:RequestDataFromServer(dataKey: string, ...: any): (boolean, any)
 	if not IS_SERVER then
 		local args = {...}
 		local success, result = pcall(function()
 			return request:InvokeServer(SERVER_REQUESTS.RECEIVE_CUSTOM_REQUEST_FROM_CLIENT, dataKey, unpack(args))
 		end)
-		if success then
-			return result
-		else
-			error(string.format(ERRORS.SERVER_DATA_REQUEST_FAILED, "Failed to request for data from the server, was the server handler defined?"))
-		end
+		return success, result
 	else
 		error(string.format(ERRORS.CLIENT_FUNCTION_ONLY, "Replicator:RequestDataFromServer()"))
 	end
