@@ -6,15 +6,16 @@ repo_url: https://github.com/bhristt/EZReplicator
 theme:
   name: material
   palette:
-    primary: "Deep Purple"
-    accent: "Deep Purple"
+    primary: "Red"
+    accent: "Red"
 
 nav:
   - Home: index.md
   - Tutorial:
-    - Getting started: tutorial/getting_started.md
-    - Basic Subscription usage: tutorial/subscriptions.md
-    - Other usage: tutorial/other_usage.md
+    - Getting Started: tutorial/getting_started.md
+    - Basic Subscription Usage: tutorial/subscriptions.md
+    - Replicator Signals and Requests: tutorial/signals_requests.md
+    - Advanced Subscription Usage: tutorial/advanced_subscriptions.md
   - API: api.md
 
 markdown_extensions:
