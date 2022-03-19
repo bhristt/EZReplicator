@@ -4,7 +4,6 @@
     "$className": "DataModel",
 
     "ReplicatedStorage": {
-      "$className": "ReplicatedStorage",
       "EZReplicator": {
         "$path": "src/EZReplicator/EZReplicator.lua",
         "Subscription": {
@@ -29,7 +28,6 @@
     },
 
     "ServerScriptService": {
-      "$className": "ServerScriptService",
       "Example1": {
         "$className": "Folder",
         "Server": {
@@ -42,7 +40,6 @@
     },
 
     "ReplicatedFirst": {
-      "$className": "ReplicatedFirst",
       "Example1": {
         "$className": "Folder",
         "Client": {

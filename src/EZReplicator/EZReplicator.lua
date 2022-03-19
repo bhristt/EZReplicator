@@ -5,6 +5,7 @@
 
 --// services
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 
 --// modules
@@ -220,6 +221,26 @@ function ReplicatorFunctions:SendSignalToAllClients(signalName: string, ...: any
 		signal:FireAllClients(CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER, signalName, unpack(args))
 	else
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:SendSignalToAllClients()"))
+	end
+end
+--// sends a signal with the given name to all clients except the provided client(s)
+--// the client can handle the signal via Replicator:GetServerSignal()
+function ReplicatorFunctions:SendSignalToAllClientsExcept(plrs: Player | {Player}, signalName: string, ...: any)
+	if IS_SERVER then
+		local args = {...}
+		--// convert plrs into a table
+		if type(plrs) ~= "table" then
+			plrs = {plrs}
+		end
+		--// iterate through players and send a signal to all players
+		--// except the ones provided in the arguments
+		for _, player in pairs(Players:GetPlayers()) do
+			if not table.find(plrs, player) then
+				signal:FireClient(player, CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER, signalName, unpack(args))
+			end
+		end
+	else
+		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:SendSignalToAllClientsExcept()"))
 	end
 end
 --// gets a bindable event for listening for client signals

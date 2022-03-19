@@ -14,7 +14,8 @@ nav:
   - Tutorial:
     - Getting Started: tutorial/getting_started.md
     - Basic Subscription Usage: tutorial/subscriptions.md
-    - Replicator Signals and Requests: tutorial/signals_requests.md
+    - Replicator Signals: tutorial/signals.md
+    - Replicator Requests: tutorial/requests.md
     - Advanced Subscription Usage: tutorial/advanced_subscriptions.md
   - API: api.md
 
