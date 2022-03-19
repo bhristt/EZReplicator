@@ -1,4 +1,4 @@
-EZReplicator comes with functions to send signals and request data from both the server and the client. Sending signals is simple, and requesting data is also very simple.
+EZReplicator comes with functions to send signals from both the server and the client. Sending signals is simple, and can be done by adding only a few lines of code.
 
 ---
 
