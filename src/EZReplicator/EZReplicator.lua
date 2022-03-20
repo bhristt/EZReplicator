@@ -98,6 +98,10 @@ local ReplicatorFunctions = {}
 local SubscriptionStoreFunctions = {}
 
 
+--// Replicator class properties
+Replicator.CLIENT_TABLE_FILTER_TYPES = Subscription.CLIENT_TABLE_FILTER_TYPES
+
+
 --// subscription store functions
 --// adds a subscription to the subscription store
 function SubscriptionStoreFunctions:AddSubscription(name: string, subscription: Subscription)
@@ -106,8 +110,8 @@ function SubscriptionStoreFunctions:AddSubscription(name: string, subscription: 
 		local connections = subscriptionConnections[self]
 		local subConnections = {}
 		table.insert(subConnections, subscription.PropertyChanged:Connect(function(propIndex, propVal)
-			local updateAllClientsOnPropChanged = subscription.UpdateAllClientSubscriptionsOnPropertyChanged
-			if not updateAllClientsOnPropChanged then
+			local updateAllSubsOnPropChanged = subscription.UpdateAllSubsOnPropChanged
+			if not updateAllSubsOnPropChanged then
 				subscription:IterateThroughFilteredCTbl(function(player)
 					signal:FireClient(player, CLIENT_SIGNALS.UPDATE_SUBSCRIPTION, name, propIndex, propVal)
 				end)

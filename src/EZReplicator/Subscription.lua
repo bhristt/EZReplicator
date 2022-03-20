@@ -32,6 +32,8 @@ local BINDABLE_EVENT_NAMES = {
 	PROPERTY_ADDED = "PROPERTY_ADDED",
 	PROPERTY_CHANGED = "PROPERTY_CHANGED",
 	PROPERTY_REMOVED = "PROPERTY_REMOVED",
+	PLAYER_ADDED_TO_CLIENT_TBL = "PLAYER_ADDED_TO_CLIENT_TBL",
+	PLAYER_REMOVED_FROM_CLIENT_TBL = "PLAYER_REMOVED_FROM_CLIENT_TBL",
 }
 
 local ERRORS = {
@@ -158,7 +160,7 @@ function Subscription.new(propTable: {[string]: any}?)
 	--// setup new subscription object
 	self.Properties = setmetatable(propTable or {}:: {[string]: any}, NO_INDEX_META)
 	self.StoreTablePropertyAsPointer = false
-	self.UpdateAllClientSubscriptionsOnPropertyChanged = true
+	self.UpdateAllSubsOnPropChanged = true
 	self.ClientTableFilterType = CLIENT_TABLE_FILTER_TYPES.WHITELIST
 	--// setup new private subscription object
 	pself.Initialized = false
@@ -170,6 +172,8 @@ function Subscription.new(propTable: {[string]: any}?)
 	self.PropertyAdded = Func.StoreNewBindable(pself.Bindables, BINDABLE_EVENT_NAMES.PROPERTY_ADDED)
 	self.PropertyChanged = Func.StoreNewBindable(pself.Bindables, BINDABLE_EVENT_NAMES.PROPERTY_CHANGED)
 	self.PropertyRemoved = Func.StoreNewBindable(pself.Bindables, BINDABLE_EVENT_NAMES.PROPERTY_REMOVED)
+	self.PlayerAddedToClientTbl = Func.StoreNewBindable(pself.Bindables, BINDABLE_EVENT_NAMES.PLAYER_ADDED_TO_CLIENT_TBL)
+	self.PlayerRemovedFromClientTbl = Func.StoreNewBindable(pself.Bindables, BINDABLE_EVENT_NAMES.PLAYER_REMOVED_FROM_CLIENT_TBL)
 	--// initialize
 	clientTableConnections[pself.ClientTable] = {}
 	private[self] = pself
