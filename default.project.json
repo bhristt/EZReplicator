@@ -36,6 +36,15 @@
             "Disabled": true
           }
         }
+      },
+      "Example2": {
+        "$className": "Folder",
+        "Server": {
+          "$path": "src/Example2/Server.server.lua",
+          "$properties": {
+            "Disabled": true
+          }
+        }
       }
     },
 
@@ -44,6 +53,15 @@
         "$className": "Folder",
         "Client": {
           "$path": "src/Example1/Client.client.lua",
+          "$properties": {
+            "Disabled": true
+          }
+        }
+      },
+      "Example2": {
+        "$className": "Folder",
+        "Client": {
+          "$path": "src/Example2/Client.client.lua",
           "$properties": {
             "Disabled": true
           }
