@@ -1,75 +1,15 @@
 {
   "name": "EZReplicator",
   "tree": {
-    "$className": "DataModel",
-
-    "ReplicatedStorage": {
-      "$ignoreUnknownInstances": true,
-      "EZReplicator": {
-        "$path": "src/EZReplicator/EZReplicator.lua",
-        "Subscription": {
-          "$path": "src/EZReplicator/Subscription.lua"
-        },
-        "Func": {
-          "$path": "src/EZReplicator/Func.lua"
-        },
-        "Settings": {
-          "$path": "src/EZReplicator/Settings.lua"
-        },
-        "REMOTES": {
-          "$className": "Folder",
-          "SIGNAL": {
-            "$className": "RemoteEvent"
-          },
-          "REQUEST": {
-            "$className": "RemoteFunction"
-          }
-        }
-      }
+    "$path": "src/EZReplicator/EZReplicator.lua",
+    "Subscription": {
+      "$path": "src/EZReplicator/Subscription.lua"
     },
-
-    "ServerScriptService": {
-      "$ignoreUnknownInstances": true,
-      "Example1": {
-        "$className": "Folder",
-        "Server": {
-          "$path": "src/Example1/Server.server.lua",
-          "$properties": {
-            "Disabled": true
-          }
-        }
-      },
-      "Example2": {
-        "$className": "Folder",
-        "Server": {
-          "$path": "src/Example2/Server.server.lua",
-          "$properties": {
-            "Disabled": true
-          }
-        }
-      }
+    "Func": {
+      "$path": "src/EZReplicator/Func.lua"
     },
-
-    "ReplicatedFirst": {
-      "$ignoreUnknownInstances": true,
-      "Example1": {
-        "$className": "Folder",
-        "Client": {
-          "$path": "src/Example1/Client.client.lua",
-          "$properties": {
-            "Disabled": true
-          }
-        }
-      },
-      "Example2": {
-        "$className": "Folder",
-        "Client": {
-          "$path": "src/Example2/Client.client.lua",
-          "$properties": {
-            "Disabled": true
-          }
-        }
-      }
+    "Settings": {
+      "$path": "src/EZReplicator/Settings.lua"
     }
   }
 }

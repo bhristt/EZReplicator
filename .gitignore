@@ -1,6 +1,9 @@
 # Project place file
 /EZReplicator.rbxlx
 
+# Project model file
+/EZReplicator.rbxmx
+
 # Roblox Studio lock files
 /*.rbxlx.lock
 /*.rbxl.lock
