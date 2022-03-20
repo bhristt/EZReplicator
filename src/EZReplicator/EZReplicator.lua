@@ -106,7 +106,14 @@ function SubscriptionStoreFunctions:AddSubscription(name: string, subscription: 
 		local connections = subscriptionConnections[self]
 		local subConnections = {}
 		table.insert(subConnections, subscription.PropertyChanged:Connect(function(propIndex, propVal)
-			signal:FireAllClients(CLIENT_SIGNALS.UPDATE_SUBSCRIPTION, name, propIndex, propVal)
+			local updateAllClientsOnPropChanged = subscription.UpdateAllClientSubscriptionsOnPropertyChanged
+			if not updateAllClientsOnPropChanged then
+				subscription:IterateThroughFilteredCTbl(function(player)
+					signal:FireClient(player, CLIENT_SIGNALS.UPDATE_SUBSCRIPTION, name, propIndex, propVal)
+				end)
+			else
+				signal:FireAllClients(CLIENT_SIGNALS.UPDATE_SUBSCRIPTION, name, propIndex, propVal)
+			end
 		end))
 		connections[subscription] = subConnections
 	end

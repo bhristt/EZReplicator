@@ -5,6 +5,7 @@
 
 --// services
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 
 --// modules
@@ -15,9 +16,17 @@ local SETTINGS = require(script.Parent:WaitForChild("Settings"))
 --// declarations
 local private = {}
 
+--// store connections to client table
+local clientTableConnections = {}
+
 
 --// constants
 local IS_SERVER = RunService:IsServer()
+
+local CLIENT_TABLE_FILTER_TYPES = {
+	WHITELIST = "WHITELIST",
+	BLACKLIST = "BLACKLIST",
+}
 
 local BINDABLE_EVENT_NAMES = {
 	PROPERTY_ADDED = "PROPERTY_ADDED",
@@ -30,16 +39,27 @@ local ERRORS = {
 	CLIENT_FUNCTION_ONLY = "[CLIENT FUNCTION ONLY] %s",
 	INVALID_PROPERTY_NAME = "[INVALID PROPERTY NAME] %s",
 	INVALID_PROPERTY = "[INVALID PROPERTY] %s",
+	INVALID_USE_OF_CLIENT_TABLE = "[INVALID CLIENT TABLE USE] %s",
 }
 
 
 --// subscription class
 local Subscription = {}
 local SubscriptionFunc = {}
-local NoIndexMetaFunc = {}
+
+
+--// subscription class properties
+--// ClientTableFilterTypes
+Subscription.CLIENT_TABLE_FILTER_TYPES = setmetatable({}, {
+	__index = CLIENT_TABLE_FILTER_TYPES,
+	__newindex = function(tbl, index, val)
+		error("Cannot add new indices to this table!")
+	end,
+})
 
 
 --// no index metatable
+local NoIndexMetaFunc = {}
 local NO_INDEX_META = {
 	__index = NoIndexMetaFunc,
 	__newindex = function(tbl, index, val)
@@ -61,6 +81,74 @@ function NoIndexMetaFunc:GetProperties(): {[string]: any}
 end
 
 
+--// client table metatable
+local ClientTableFunc = {}
+local CLIENT_TABLE_META = {
+	__index = ClientTableFunc,
+	__newindex = function(tbl, index, val)
+		error("Cannot add new indices to this table!")
+	end,
+}
+--// client table functions
+--// adds a new player to the client table
+--// creates a connection to remove the player
+--// from the table when the player leaves
+function ClientTableFunc:AddPlayer(player: Player)
+	--// check if player is already in the table
+	if table.find(self, player) then
+		return
+	end
+	--// add the player to the client table
+	local connections = clientTableConnections[self]
+	connections[player] = Players.PlayerRemoving:Connect(function(playerRemoving)
+		if playerRemoving == player then
+			self:RemovePlayer(player)
+		end
+	end)
+	rawset(self, #self + 1, player)
+end
+--// iterates through all players in the game, accounting
+--// for the filter type of the table
+function ClientTableFunc:IterateAccountingFilter(filterType: string, func: (plr: Player) -> any)
+	local iterationType = {
+		[CLIENT_TABLE_FILTER_TYPES.WHITELIST] = function()
+			for _, plr in ipairs(self) do
+				func(plr)
+			end
+		end,
+		[CLIENT_TABLE_FILTER_TYPES.BLACKLIST] = function()
+			for _, plr in pairs(Players:GetPlayers()) do
+				if not table.find(self, plr) then
+					func(plr)
+				end
+			end
+		end,
+	}
+	if iterationType[filterType] ~= nil then
+		iterationType[filterType]()
+	end
+end
+--// removes a player from the client table
+--// if the player is not in the client table, does nothing
+function ClientTableFunc:RemovePlayer(player: Player)
+	local connections = clientTableConnections[self]
+	--// check if the player is in the client table
+	local playerInList = table.find(self, player)
+	if playerInList then
+		local playerConnection = connections[player]
+		if playerConnection ~= nil then	
+			playerConnection:Disconnect()
+		end
+		rawset(self, playerInList, nil)
+		for i = playerInList + 1, #self do
+			local p = self[i]
+			rawset(self, i, nil)
+			rawset(self, i - 1, p)
+		end
+	end
+end
+
+
 --// constructor
 function Subscription.new(propTable: {[string]: any}?)
 	local self = setmetatable({}, {
@@ -70,9 +158,12 @@ function Subscription.new(propTable: {[string]: any}?)
 	--// setup new subscription object
 	self.Properties = setmetatable(propTable or {}:: {[string]: any}, NO_INDEX_META)
 	self.StoreTablePropertyAsPointer = false
+	self.UpdateAllClientSubscriptionsOnPropertyChanged = true
+	self.ClientTableFilterType = CLIENT_TABLE_FILTER_TYPES.WHITELIST
 	--// setup new private subscription object
 	pself.Initialized = false
 	pself.Bindables = {}:: {[string]: BindableEvent}
+	pself.ClientTable = setmetatable({}:: {Player}, CLIENT_TABLE_META)
 	pself.Listeners = {}:: {[string]: BindableEvent}
 	pself.Connections = {}:: {RBXScriptConnection}
 	--// setup bindables for subscription object
@@ -80,6 +171,7 @@ function Subscription.new(propTable: {[string]: any}?)
 	self.PropertyChanged = Func.StoreNewBindable(pself.Bindables, BINDABLE_EVENT_NAMES.PROPERTY_CHANGED)
 	self.PropertyRemoved = Func.StoreNewBindable(pself.Bindables, BINDABLE_EVENT_NAMES.PROPERTY_REMOVED)
 	--// initialize
+	clientTableConnections[pself.ClientTable] = {}
 	private[self] = pself
 	self:Init()
 	return self
@@ -180,7 +272,57 @@ function SubscriptionFunc:RemoveProperty(propIndex: string)
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:RemoveProperty() can only be used on the server!"))
 	end
 end
-
+--// adds a player to the client table of the subscription
+--// if the player is already in the client table, does nothing
+function SubscriptionFunc:AddPlayerToClientTbl(player: Player)
+	if IS_SERVER then
+		local pself = private[self]
+		local ctbl = pself.ClientTable
+		ctbl:AddPlayer(player)
+	else
+		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:AddPlayerToClientTbl() can only be used on the server!"))
+	end
+end
+--// gets the list of players in the client table
+--// the client table is a table that has functions attached to it
+--// to protect the client table, a clone of the table can be made instead
+function SubscriptionFunc:GetClientTbl(): {Player}
+	if IS_SERVER then
+		local pself = private[self]
+		local ctbl = pself.ClientTable
+		local ctbl_nm = {}
+		for i, v in ipairs(ctbl) do
+			ctbl_nm[i] = v
+		end
+		return ctbl_nm
+	else
+		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:GetClientTbl() can only be used on the server!"))
+	end
+end
+--// iterates through the client table according to the filter type
+--// if the filter type is set to WHITELIST, only uses players in the table
+--// if the filter type is set to BLACKLIST, only uses players outside of the table
+function SubscriptionFunc:IterateThroughFilteredCTbl(func: (plr: Player) -> any)
+	if IS_SERVER then
+		local pself = private[self]
+		local ctbl = pself.ClientTable
+		local filterType = self.ClientTableFilterType
+		ctbl:IterateAccountingFilter(filterType, func)
+	else
+		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:IterateThroughFilteredCTbl() can only be used on the server!"))
+	end
+end
+--// removes a player from the client table
+--// if the player is not in the client table, does nothing
+function SubscriptionFunc:RemovePlayerFromClientTbl(player: Player)
+	if IS_SERVER then
+		local pself = private[self]
+		local ctbl = pself.ClientTable
+		ctbl:RemovePlayer(player)
+	else
+		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:RemovePlayerFromClientTbl() can only be used on the server!"))
+	end
+end
 
 --// subscription client functions
 --// updates the subscription with the given property table
