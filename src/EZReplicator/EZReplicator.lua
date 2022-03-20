@@ -25,7 +25,6 @@ end
 --// are stored in this table
 local private = {}
 
-
 --// connections for subscriptions and subscription store
 --// this table is necessary because subscription store
 --// connections are made in a different scope than the

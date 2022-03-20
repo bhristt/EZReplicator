@@ -4,6 +4,7 @@
     "$className": "DataModel",
 
     "ReplicatedStorage": {
+      "$ignoreUnknownInstances": true,
       "EZReplicator": {
         "$path": "src/EZReplicator/EZReplicator.lua",
         "Subscription": {
@@ -28,6 +29,7 @@
     },
 
     "ServerScriptService": {
+      "$ignoreUnknownInstances": true,
       "Example1": {
         "$className": "Folder",
         "Server": {
@@ -49,6 +51,7 @@
     },
 
     "ReplicatedFirst": {
+      "$ignoreUnknownInstances": true,
       "Example1": {
         "$className": "Folder",
         "Client": {
