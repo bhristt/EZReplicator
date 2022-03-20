@@ -109,6 +109,29 @@ function ClientTableFunc:AddPlayer(player: Player)
 	end)
 	rawset(self, #self + 1, player)
 end
+--// gets the players in the client table accounting for the
+--// given client table filter type
+function ClientTableFunc:GetFilteredPlayers(filterType: string): {Player}
+	local filter = {
+		[CLIENT_TABLE_FILTER_TYPES.WHITELIST] = function()
+			local tbl = {}
+			for _, plr in iparis(self) do
+				table.insert(tbl, plr)
+			end
+		end,
+		[CLIENT_TABLE_FILTER_TYPES.BLACKLIST] = function()
+			local tbl = {}
+			for _, plr in pairs(Players:GetPlayers()) do
+				if not table.find(self, plr) then
+					table.insert(tbl, plr)
+				end
+			end
+		end,
+	}
+	if filter[filterType] ~= nil then
+		return filter[filterType]()
+	end
+end
 --// iterates through all players in the game, accounting
 --// for the filter type of the table
 function ClientTableFunc:IterateAccountingFilter(filterType: string, func: (plr: Player) -> any)
@@ -301,6 +324,18 @@ function SubscriptionFunc:GetClientTbl(): {Player}
 		return ctbl_nm
 	else
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:GetClientTbl() can only be used on the server!"))
+	end
+end
+--// gets the list of players in the client table accounting for the
+--// filter applied to the subscription
+function SubscriptionFunc:GetFilteredClientTbl(): {Player}
+	if IS_SERVER then
+		local pself = private[self]
+		local ctbl = pself.ClientTable
+		local filterType = self.ClientTableFilterType
+		return ctbl:GetFilteredPlayers(filterType)
+	else
+		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:GetFilteredClientTbl() can only be used on the server!"))
 	end
 end
 --// iterates through the client table according to the filter type

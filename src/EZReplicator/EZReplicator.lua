@@ -53,6 +53,7 @@ local SERVER_REQUESTS = {
 local CLIENT_SIGNALS = {
 	CREATE_SUBSCRIPTION = "CREATE_SUBSCRIPTION",
 	UPDATE_SUBSCRIPTION = "UPDATE_SUBSCRIPTION",
+	UPDATE_SUBSCRIPTION_PACKAGE = "UPDATE_SUBSCRIPTION_PACKAGE",
 	REMOVE_SUBSCRIPTION = "REMOVE_SUBSCRIPTION",
 	RECEIVE_CUSTOM_SIGNAL_FROM_SERVER = "CUSTOM_SERVER_SIGNAL_RECEIVED",
 }
@@ -109,6 +110,7 @@ function SubscriptionStoreFunctions:AddSubscription(name: string, subscription: 
 	if IS_SERVER then
 		local connections = subscriptionConnections[self]
 		local subConnections = {}
+		--// when a property is changed, update the subscriptions on the respectul clients
 		table.insert(subConnections, subscription.PropertyChanged:Connect(function(propIndex, propVal)
 			local updateAllSubsOnPropChanged = subscription.UpdateAllSubsOnPropChanged
 			if not updateAllSubsOnPropChanged then
@@ -117,6 +119,29 @@ function SubscriptionStoreFunctions:AddSubscription(name: string, subscription: 
 				end)
 			else
 				signal:FireAllClients(CLIENT_SIGNALS.UPDATE_SUBSCRIPTION, name, propIndex, propVal)
+			end
+		end))
+		--// when a player is added to the client table in the subscription, and the
+		--// player is meant to receive the copy of the subscription, update the subscription
+		--// for the player on their client
+		table.insert(subConnections, subscription.PlayerAddedToClientTbl:Connect(function(player)
+			local updateAllSubsOnPropChanged = subscription.UpdateAllSubsOnPropChanged
+			local sendSignalToUpdateSub = false
+			--// check if the player is meant to receive a replicated copy
+			--// of the subscription in the server
+			if not updateAllSubsOnPropChanged then
+				local filteredClientTbl = subscription:GetFilteredClientTbl()
+				if table.find(filteredClientTbl, player) then
+					sendSignalToUpdateSub = true
+				end
+			else
+				sendSignalToUpdateSub = true
+			end
+			--// if the player is meant to receive a replicated copy,
+			--// send a replicated copy of the entire subscription
+			if sendSignalToUpdateSub then
+				local properties = subscription.Properties:GetProperties()
+				signal:FireClient(player, CLIENT_SIGNALS.UPDATE_SUBSCRIPTION_PACKAGE, name, properties)
 			end
 		end))
 		connections[subscription] = subConnections
@@ -439,6 +464,15 @@ function ReplicatorFunctions:Init()
 						local subscriptionProperties = subscription.Properties:GetProperties()
 						subscriptionProperties[propIndex] = propVal
 						subscription:UpdateSubscription(subscriptionProperties)
+					end
+				end,
+				--// updates the subscription with the given name and updates all properties
+				--// should be given a full property table
+				[CLIENT_SIGNALS.UPDATE_SUBSCRIPTION_PACKAGE] = function(subscriptionName, propTable: {[string]: any})
+					local subscriptions = pself.Subscriptions
+					local subscription = subscriptions:GetSubscription(subscriptionName)
+					if subscription ~= nil then
+						subscription:UpdateSubscription(propTable)
 					end
 				end,
 				--// removes the subscription with the given name
