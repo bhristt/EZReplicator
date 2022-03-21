@@ -17,6 +17,7 @@ nav:
     - Replicator Signals: tutorial/signals.md
     - Replicator Requests: tutorial/requests.md
     - Advanced Subscription Usage: tutorial/advanced_subscriptions.md
+  - Updates: updates.md
   - API: api.md
 
 markdown_extensions:

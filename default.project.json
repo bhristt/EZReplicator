@@ -10,6 +10,15 @@
     },
     "Settings": {
       "$path": "src/EZReplicator/Settings.lua"
+    },
+    "REMOTES": {
+      "$className": "Folder",
+      "SIGNAL": {
+        "$className": "RemoteEvent"
+      },
+      "REQUEST": {
+        "$className": "RemoteFunction"
+      }
     }
   }
 }

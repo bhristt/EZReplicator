@@ -31,7 +31,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local EZReplicator = require(ReplicatedStorage:WaitForChild("EZReplicator"))
 
 --// requests data from the server defined by the "MAIN_REQUEST" request handler
-local playerString = EZReplicator:RequestDataFromServer("MAIN_REQUEST")
+local success, playerString = EZReplicator:RequestDataFromServer("MAIN_REQUEST")
 
 --// print the request result
 print(playerString)
@@ -69,4 +69,55 @@ Similarly to how we requested data from the server, we can request data from the
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local EZReplicator = require(ReplicatedStorage:WaitForChild("EZReplicator"))
+
+local playerList = Players:GetPlayers()
+local randPlayer = playerList[math.random(1, #playerList)]
+
+--// request data from the client defined by the client handler named "GIVE_ME_A_NUMBER"
+local success, randomNumber = EZReplicator:RequestDataFromClient(randPlayer, "GIVE_ME_A_NUMBER")
+print(randomNumber)
+```
+
+The above code requests the data from a random client, then prints it to the console. The output of the code above should look something like:
+
+```
+4
+```
+
+---
+
+## Handling Unsuccessful Data Requests
+
+Because RemoteFunctions can sometimes fail when invoked, the RequestDataFrom functions return a "success" boolean. This boolean tells us whether the request was successful or not. If we request data and success is false, then we can handle this unsuccessful data request by trying to request the data again.
+
+Let's say we are trying to get data from a client. This request has a maximum of three retries, and after the third retry, the request is ignored. In a server Script,
+
+```lua
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local EZReplicator = require(ReplicatedStorage:WaitForChild("EZReplicator"))
+
+local playerList = Players:GetPlayers()
+local randPlayer = playerList[math.random(1, #playerList)]
+
+local MAX_REQUEST_RETRIES = 3
+
+local success, result do
+    local n = 0
+    while n < MAX_REQUEST_RETRIES do
+        success, result = EZReplicator:RequestDataFromClient(randPlayer, "DATA_REQUEST")
+        if success then
+            break
+        end
+        n += 1
+    end
+end
+
+--// check to see that the request was successful
+if success then
+    print("Request was successful!")
+    print("The data received was: " .. tostring(result))
+else
+    print("Request unsuccessul, ignoring request")
+end
 ```
