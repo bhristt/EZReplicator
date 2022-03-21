@@ -257,16 +257,6 @@ function ReplicatorFunctions:SendSignalToClient(player: Player, signalName: stri
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:SendSignalToClient()"))
 	end
 end
---// sends a signal with the given name to all clients
---// the client can handle the signal via Replicator:GetServerSignal()
-function ReplicatorFunctions:SendSignalToAllClients(signalName: string, ...: any)
-	if IS_SERVER then
-		local args = {...}
-		signal:FireAllClients(CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER, signalName, unpack(args))
-	else
-		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:SendSignalToAllClients()"))
-	end
-end
 --// sends a signal with the given name to all clients except the provided client(s)
 --// the client can handle the signal via Replicator:GetServerSignal()
 function ReplicatorFunctions:SendSignalToAllClientsExcept(plrs: Player | {Player}, signalName: string, ...: any)
@@ -285,6 +275,16 @@ function ReplicatorFunctions:SendSignalToAllClientsExcept(plrs: Player | {Player
 		end
 	else
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:SendSignalToAllClientsExcept()"))
+	end
+end
+--// sends a signal with the given name to all clients
+--// the client can handle the signal via Replicator:GetServerSignal()
+function ReplicatorFunctions:SendSignalToAllClients(signalName: string, ...: any)
+	if IS_SERVER then
+		local args = {...}
+		signal:FireAllClients(CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER, signalName, unpack(args))
+	else
+		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:SendSignalToAllClients()"))
 	end
 end
 --// gets a bindable event for listening for client signals
