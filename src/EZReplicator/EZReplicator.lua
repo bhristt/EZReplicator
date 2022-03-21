@@ -147,11 +147,11 @@ function SubscriptionStoreFunctions:AddSubscription(name: string, subscription: 
 	end
 end
 --// gets the subscription with the given name from the subscription store
-function SubscriptionStoreFunctions:GetSubscription(name: string): Subscription
+function SubscriptionStoreFunctions:GetSubscription(name: string): Subscription?
 	return rawget(self, name)
 end
 --// removes a subscription from the subscription store
-function SubscriptionStoreFunctions:RemoveSubscription(name: string)
+function SubscriptionStoreFunctions:RemoveSubscription(name: string): Subscription?
 	local subscription = rawget(self, name)
 	rawset(self, name, nil)
 	if IS_SERVER and subscription ~= nil then
@@ -161,7 +161,9 @@ function SubscriptionStoreFunctions:RemoveSubscription(name: string)
 			connection:Disconnect()
 		end
 		connections[subscription] = nil
+		return subscription
 	end
+	return nil
 end
 
 
@@ -198,7 +200,10 @@ end
 function ReplicatorFunctions:CreateSubscription(subscriptionName: string, propTable: {[string]: any}?): Subscription
 	if IS_SERVER then
 		local pself = private[self]
+		local bindables = pself.Bindables
 		local subscriptionStore = pself.Subscriptions
+		--// get the bindable for a subscription added
+		local subscriptionAddedBindable = bindables[REPLICATOR_BINDABLE_NAMES.SUBSCRIPTION_ADDED]
 		--// check that a subscription with the given name was not already made
 		--// if a subscription with the same name was made, error
 		if subscriptionStore:GetSubscription(subscriptionName) == nil then
@@ -207,6 +212,7 @@ function ReplicatorFunctions:CreateSubscription(subscriptionName: string, propTa
 			local newSubscription = Subscription.new(propTable)
 			subscriptionStore:AddSubscription(subscriptionName, newSubscription)
 			signal:FireAllClients(CLIENT_SIGNALS.CREATE_SUBSCRIPTION, subscriptionName, propTable)
+			subscriptionAddedBindable:Fire(newSubscription)
 			--// return the subscription
 			return newSubscription
 		else
@@ -220,13 +226,19 @@ end
 function ReplicatorFunctions:RemoveSubscription(subscriptionName: string)
 	if IS_SERVER then
 		local pself = private[self]
+		local bindables = pself.bindables
 		local subscriptionStore = pself.Subscriptions
+		--// get the bindable for a subscription removed
+		local subscriptionRemovedBindable = bindables[REPLICATOR_BINDABLE_NAMES.SUBSCRIPTION_REMOVED]
 		--// check that a subscription with the given name was made
 		--// if a subscription with the given name wasn't found, errors
 		local subscription = subscriptionStore:GetSubscription(subscriptionName)
 		if subscription ~= nil then
-			subscriptionStore:RemoveSubscription(subscriptionName)
-			signal:FireAllClients(CLIENT_SIGNALS.REMOVE_SUBSCRIPTION, subscriptionName)
+			local subscriptionRemoved = subscriptionStore:RemoveSubscription(subscriptionName)
+			if subscriptionRemoved then
+				signal:FireAllClients(CLIENT_SIGNALS.REMOVE_SUBSCRIPTION, subscriptionName)
+				subscriptionRemovedBindable:Fire(subscriptionRemoved)
+			end
 		else
 			error(string.format(ERRORS.INVALID_SUBSCRIPTION, "'" .. tostring(subscriptionName) .. "' is not a valid subscription"))
 		end
