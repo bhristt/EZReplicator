@@ -15,7 +15,7 @@ EZReplicator.SubscriptionRemoved    [RBXScriptSignal]
 ```
 This RBXScriptSignal is fired when a `Subscription` has been removed from the EZReplicator Subscription store. Connecting to it requires a function with the following format:
 ```lua
-EZReplicator:SubscriptionRemoved:Connect(function()
+EZReplicator:SubscriptionRemoved:Connect(function(subscriptionRemoved: Subscription)
     --// code
 end)
 ```

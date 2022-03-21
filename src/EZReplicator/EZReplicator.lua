@@ -98,10 +98,6 @@ local ReplicatorFunctions = {}
 local SubscriptionStoreFunctions = {}
 
 
---// Replicator class properties
-Replicator.CLIENT_TABLE_FILTER_TYPES = Subscription.CLIENT_TABLE_FILTER_TYPES
-
-
 --// subscription store functions
 --// adds a subscription to the subscription store
 function SubscriptionStoreFunctions:AddSubscription(name: string, subscription: Subscription)
@@ -176,6 +172,7 @@ function Replicator.new()
 	})
 	local pself = {}
 	--// setup Replicator object
+	self.CLIENT_TABLE_FILTER_TYPES = Subscription.CLIENT_TABLE_FILTER_TYPES
 	--// setup private Replicator object
 	pself.Initialized = false
 	pself.Subscriptions = setmetatable({}:: {[string]: Subscription}, {
