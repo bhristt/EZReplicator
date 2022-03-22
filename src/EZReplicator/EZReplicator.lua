@@ -259,20 +259,27 @@ function ReplicatorFunctions:SendSignalToClient(player: Player, signalName: stri
 end
 --// sends a signal with the given name to all clients except the provided client(s)
 --// the client can handle the signal via Replicator:GetServerSignal()
-function ReplicatorFunctions:SendSignalToAllClientsExcept(plrs: Player | {Player}, signalName: string, ...: any)
+function ReplicatorFunctions:SendSignalToAllClientsExcept(plrs: Player | {Player}, signalName: string, ...: any): {[Player]: boolean}
 	if IS_SERVER then
 		local args = {...}
 		--// convert plrs into a table
 		if type(plrs) ~= "table" then
 			plrs = {plrs}
 		end
+		--// create success table for players
+		local successTbl = {}
 		--// iterate through players and send a signal to all players
 		--// except the ones provided in the arguments
 		for _, player in pairs(Players:GetPlayers()) do
 			if not table.find(plrs, player) then
-				signal:FireClient(player, CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER, signalName, unpack(args))
+				local success, err = pcall(function()
+					signal:FireClient(player, CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER, signalName, unpack(args))
+				end)
+				successTbl[player] = success
 			end
 		end
+		--// return the success table
+		return successTbl
 	else
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Replicator:SendSignalToAllClientsExcept()"))
 	end
