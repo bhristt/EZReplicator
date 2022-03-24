@@ -1,6 +1,85 @@
 --// written by bhristt (march 13 2022)
 --// updated: march 19 2022
---// the replicator class for use in both the client and the server
+--[[
+	
+	API:
+
+	//////////////////////////////////////////////////
+	EZReplicator Properties
+	//////////////////////////////////////////////////
+
+		EZReplicator.CLIENT_TABLE_FILTER_TYPES    [dictionary]
+		
+	//////////////////////////////////////////////////
+	EZReplicator Functions
+	//////////////////////////////////////////////////
+
+	EZReplicator:CreateSubscription():
+	
+		EZReplicator:CreateSubscription(
+			subscriptionName [string],
+			propTable [table]: {
+				[string]: [any]
+			} OR nil
+		) --> [Subscription]
+		
+		This function creates a subscription object with the given name and given property table.
+		If a Subscription with the given name already exists, errors.
+		If propTable is left as nil, defaults to {}.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:RemoveSubscription():
+
+		EZReplicator:RemoveSubscription(
+			subscriptionName [string]
+		) --> nil
+
+		This function removes the Subscription with the given name.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:SendSignalToClient():
+		
+		EZReplicator:SendSignalToClient(
+			player [Player],
+			signalName [string],
+			... [any]
+		) --> [boolean]
+
+		This function sends a signal with the given signal name to the given client.
+		The function will return whether the signal was successfully sent.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:SendSignalToAllClientsExcept():
+	
+		EZReplicator:SendSignalToAllClientsExcept(
+			plrs [table]: {
+				[number]: [Player]
+			} OR [Player],
+			signalName [string],
+			... [any]
+		) --> [table]: {
+			[Player]: [boolean]
+		}
+
+		This function sends a signal with the given name to the given client.
+		This function will return a list with player indices, with bool values that signify
+		whether the function successfully sent a signal to that Player.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:SendSignalToAllClients():
+
+		EZReplicator:SendSignalToAllClients(
+			signalName [string],
+			... [any]
+		) --> nil
+
+		This function sends a signal with the given name to all the clients connected to the server.
+
+]]
 
 
 --// services
