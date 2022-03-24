@@ -7,6 +7,7 @@ With EZReplicator, you can create `Subscriptions`. A `Subscription` is a set of 
 The benefits of using EZReplicator for replication purposes in your experience are:
 
 - **Easy to learn** - EZReplicator is a module that is very easy to learn. It is meant to be beginner friendly, using mostly Getter and Setter functions
+- **Easily organize anything replication** - EZReplicator makes it easy to organize your RemoteEvents and RemoteFunctions, because, with this module, there is no need to create any RemoteEvents or RemoteFunctions!
 - **Reliable, easy to fix errors** - EZReplicator is meant to be a reliable module. It outputs custom error messages, making it easy to spot and fix errors
 
 > **Disclaimer**: Although EZReplicator has been thoroughly tested, EZReplicator has not been used in any large scale Roblox projects before. Any errors or issues found in the module should be reported.
