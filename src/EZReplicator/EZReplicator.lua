@@ -1,5 +1,5 @@
 --// written by bhristt (march 13 2022)
---// updated: march 19 2022
+--// updated: march 24 2022
 --// see the github repository here: https://github.com/bhristt/EZReplicator
 --// see the full documentation here: https://bhristt.github.io/EZReplicator
 --// get the roblox model here: https://www.roblox.com/library/9130689730/EZReplicator
@@ -20,12 +20,28 @@
 			BLACKLIST = "BLACKLIST",
 			WHITELIST = "WHITELIST",
 		}
+
+		--------------------------------------------------------------------------------------------------------
+
+		EZReplicator.SubscriptionAdded    [RBXScriptSignal] (subscription [Subscription])
+
+		This RBXScriptSignal is fired when a new Subscription is added to the EZReplicator
+
+		--------------------------------------------------------------------------------------------------------
+
+		EZReplicator.SubscriptionRemoved    [RBXScriptSignal] (subscription [Subscription])
+
+		This RBXScriptSignal is fired when a Subscription has been removed from the EZReplicator
+
+		--------------------------------------------------------------------------------------------------------
 		
 	//////////////////////////////////////////////////
 	EZReplicator Functions
 	//////////////////////////////////////////////////
 
 	EZReplicator:CreateSubscription():
+
+		--// Server Function //--
 	
 		EZReplicator:CreateSubscription(
 			subscriptionName [string],
@@ -42,6 +58,8 @@
 
 	EZReplicator:RemoveSubscription():
 
+		--// Server Function //--
+
 		EZReplicator:RemoveSubscription(
 			subscriptionName [string]
 		) --> nil
@@ -51,6 +69,8 @@
 	---------------------------------------------------------------------------------------------------------
 
 	EZReplicator:SendSignalToClient():
+
+		--// Server Function //--
 		
 		EZReplicator:SendSignalToClient(
 			player [Player],
@@ -60,10 +80,13 @@
 
 		This function sends a signal with the given signal name to the given client.
 		The function will return whether the signal was successfully sent.
+		Can include optional custom arguments to send along with the signal.
 
 	---------------------------------------------------------------------------------------------------------
 
 	EZReplicator:SendSignalToAllClientsExcept():
+
+		--// Server Function //--
 	
 		EZReplicator:SendSignalToAllClientsExcept(
 			plrs [table]: {
@@ -78,10 +101,13 @@
 		This function sends a signal with the given name to the given client.
 		This function will return a list with player indices, with bool values that signify
 		whether the function successfully sent a signal to that Player.
+		Can include optional custom arguments to send along with the signal.
 
 	---------------------------------------------------------------------------------------------------------
 
 	EZReplicator:SendSignalToAllClients():
+		
+		--// Server Function //--
 
 		EZReplicator:SendSignalToAllClients(
 			signalName [string],
@@ -89,10 +115,13 @@
 		) --> nil
 
 		This function sends a signal with the given name to all the clients connected to the server.
+		Can include optional custom arguments to send along with the signal.
 
 	---------------------------------------------------------------------------------------------------------
 
 	EZReplicator:GetClientSignal():
+
+		--// Server Function //--
 		
 		EZReplicator:GetClientSignal(
 			signalName [string]
@@ -106,6 +135,8 @@
 	---------------------------------------------------------------------------------------------------------
 
 	EZReplicator:RequestDataFromClient():
+
+		--// Server Function //--
 		
 		EZReplicator:RequestDataFromClient(
 			player [Player],
@@ -121,9 +152,11 @@
 
 	---------------------------------------------------------------------------------------------------------
 
-	EZReplicator:SetClientRequestHandler():
+	EZReplicator:SetServerRequestHandler():
 
-		EZReplicator:SetClientRequestHandler(
+		--// Server Function //--
+
+		EZReplicator:SetServerRequestHandler(
 			dataKey [string],
 			func [function](player [Player], ... [any]) --> any
 		) --> nil
@@ -132,8 +165,211 @@
 		When the client requests data from the server with the given dataKey, this handler will be called.
 		The handler function must be a function with a player parameter followed by any argument 
 		parameter(s).
+		* Important to note that if a handler has already been set with the given dataKey, the current
+		  handler will be overriden by the new given handler function.
 
 	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:SendSignalToServer():
+
+		--// Client Function //--
+
+		EZReplicator:SendSignalToServer(
+			signalName [string],
+			... [any]
+		) --> nil
+
+		This function sends a signal with the given signal name to the server from the client.
+		Can include optional custom arguments to send along with the signal.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:GetServerSignal():
+
+		--// Client Function //--
+
+		EZReplicator:GetServerSignal(
+			signalName [string]
+		) --> [RBXScriptSignal] (... [any])
+
+		This function gets an RBXScriptSignal that is fired each time the server sends a signal
+		to the client with the same signal name. Any arguments passed by the server through the
+		signal are passed to the RBXScriptSignal event.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:RequestDataFromServer():
+
+		--// Client Function //--
+		
+		EZReplicator:RequestDataFromServer(
+			dataKey [string],
+			... [any]
+		) --> [boolean], [any]
+
+		This function requests data from the server by requesting data with the given dataKey.
+		This function returns two values. The first value is a boolean, the second is any type of value.
+		The boolean value signifies whether the data was successfully returned.
+		The second value is the requested data value.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:SetClientRequestHandler():
+
+		--// Client Function //--
+
+		EZReplicator:SetClientRequestHandler(
+			dataKey [string],
+			func [function](... [any]) --> any
+		) --> nil
+
+		This function sets a request handler for the data requested by the server.
+		When the server requests data from the client with the given dataKey, this handler will be called.
+		The handler function must be a function with any argument parameters.
+		* Important to note that if a handler has already been set with the given dataKey, the current
+		  handler will be overriden by the new given handler function.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:Init():
+
+		--// Replicated Function //--
+
+		EZReplicator:Init() --> nil
+
+		This function is an initializer for the object. It is called only once upon the creation of the
+		EZReplicator, then it is unusable after. Calling the function after the creation of the
+		EZReplicator object will do nothing.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:WaitForSubscription():
+
+		--// Replicated Function //--
+
+		EZReplicator:WaitForSubscription(
+			subscriptionName [string],
+		) --> [Subscription] OR nil
+
+		This function waits for the subscription with the given name and returns it. If the max wait time
+		has been reached (specified in the Settings module), the function will return nil and print a 
+		warning in the output.
+	
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:GetSubscription():
+
+		--// Replicated Function //--
+
+		EZReplicator:GetSubscription(
+			subscriptionName [string],
+			yield [boolean] OR nil
+		) --> [Subscription] OR nil
+
+		This function returns the subscription with the given name. If the yield argument is true,
+		the function will attempt to wait for the subscription instead.
+
+	---------------------------------------------------------------------------------------------------------
+
+	//////////////////////////////////////////////////
+	Subscription Properties
+	//////////////////////////////////////////////////
+
+		Subscription.Properties    [table]: {
+			[string]: [any]
+		}
+
+		This is a table containing the properties of the subscription.
+
+		---------------------------------------------------------------------------------------------------------
+
+		Subscription.StoreTablePropertyAsPointer    [boolean]
+
+		This is a boolean that specifies whether tables in the server Subscription should be stored
+		as pointers instead of copies of given tables.
+
+		---------------------------------------------------------------------------------------------------------
+
+		Subscription.UpdateAllSubsOnPropChanged    [boolean]
+
+		This is a boolean that specifies whether the server should update the Subscription on all clients
+		instead of specified clients from the Subscription client table. If set to true, will update all
+		clients.
+
+		---------------------------------------------------------------------------------------------------------
+
+		Subscription.ClientTableFilterType    [string]: "BLACKLIST", "WHITELIST"
+
+		This is a string that specifies the filter type of the client table.
+		* Important to note that this property has no effect if Subscription.UpdateAllSubsOnPropChanged 
+		  is set to true.
+
+		---------------------------------------------------------------------------------------------------------
+
+		Subscription.PropertyAdded    [RBXScriptSignal] (propIndex [string], propValue [any])
+
+		--------------------------------------------------------------------------------------------------------
+
+		Subscription.PropertyChanged    [RBXScriptSignal] (propIndex [string], propValue [any])
+
+		--------------------------------------------------------------------------------------------------------
+		
+		Subscription.PropertyRemoved    [RBXScriptSignal] (propIndex [string])
+
+		--------------------------------------------------------------------------------------------------------
+
+		Subscription.PlayerAddedToClientTbl    [RBXScriptSignal] (player [Player])
+
+		--------------------------------------------------------------------------------------------------------
+
+		Subscription.PlayerRemovedFromClientTbl    [RBXScriptSignal] (player [Player])
+
+		--------------------------------------------------------------------------------------------------------
+
+	//////////////////////////////////////////////////
+	Subscription Functions
+	//////////////////////////////////////////////////
+
+	Subscription:AddProperty():
+		
+		Subscription:AddProperty(
+			propIndex [string],
+			propValue [any]
+		) --> nil
+
+		This function adds a property with the given property index to the Subscription. The value
+		of the property is the given propValue.
+		If a property with the same name has already been added, then this function will error.
+	
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:SetProperty():
+		
+		Subscription:RemoveProperty(
+			propIndex [string],
+			propValue [any]
+		) --> nil
+
+		This function changes the property with the given index's value to the given propValue.
+		If the a property with the given propIndex is not found in the subscription, then this
+		function throws an error.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:RemoveProperty():
+
+		Subscription:RemoveProperty(
+			propIndex [string]
+		) --> nil
+
+		This function removes the property with the given propIndex from the Subscription.
+		If the property with the given propIndex is not found in the Subscription, then
+		this function throws an error.
+
+	--------------------------------------------------------------------------------------------------------
+
+	** To be continued **
+
 ]]
 
 

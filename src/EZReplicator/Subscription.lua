@@ -95,10 +95,10 @@ local CLIENT_TABLE_META = {
 --// adds a new player to the client table
 --// creates a connection to remove the player
 --// from the table when the player leaves
-function ClientTableFunc:AddPlayer(player: Player)
+function ClientTableFunc:AddPlayer(player: Player): boolean
 	--// check if player is already in the table
 	if table.find(self, player) then
-		return
+		return false
 	end
 	--// add the player to the client table
 	local connections = clientTableConnections[self]
@@ -108,6 +108,7 @@ function ClientTableFunc:AddPlayer(player: Player)
 		end
 	end)
 	rawset(self, #self + 1, player)
+	return true
 end
 --// gets the players in the client table accounting for the
 --// given client table filter type
@@ -155,7 +156,7 @@ function ClientTableFunc:IterateAccountingFilter(filterType: string, func: (plr:
 end
 --// removes a player from the client table
 --// if the player is not in the client table, does nothing
-function ClientTableFunc:RemovePlayer(player: Player)
+function ClientTableFunc:RemovePlayer(player: Player): boolean
 	local connections = clientTableConnections[self]
 	--// check if the player is in the client table
 	local playerInList = table.find(self, player)
@@ -170,7 +171,9 @@ function ClientTableFunc:RemovePlayer(player: Player)
 			rawset(self, i, nil)
 			rawset(self, i - 1, p)
 		end
+		return true
 	end
+	return false
 end
 
 
@@ -304,8 +307,12 @@ end
 function SubscriptionFunc:AddPlayerToClientTbl(player: Player)
 	if IS_SERVER then
 		local pself = private[self]
+		local bindables = pself.Bindables
 		local ctbl = pself.ClientTable
-		ctbl:AddPlayer(player)
+		local playerAdded = ctbl:AddPlayer(player)
+		if playerAdded then
+			bindables[BINDABLE_EVENT_NAMES.PLAYER_ADDED_TO_CLIENT_TBL]:Fire(player)
+		end
 	else
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:AddPlayerToClientTbl() can only be used on the server!"))
 	end
@@ -356,8 +363,12 @@ end
 function SubscriptionFunc:RemovePlayerFromClientTbl(player: Player)
 	if IS_SERVER then
 		local pself = private[self]
+		local bindables = pself.Bindables
 		local ctbl = pself.ClientTable
-		ctbl:RemovePlayer(player)
+		local playerRemoved = ctbl:RemovePlayer(player)
+		if playerRemoved then
+			bindables[BINDABLE_EVENT_NAMES.PLAYER_REMOVED_FROM_CLIENT_TBL]:Fire(player)
+		end
 	else
 		error(string.format(ERRORS.SERVER_FUNCTION_ONLY, "Subscription:RemovePlayerFromClientTbl() can only be used on the server!"))
 	end
