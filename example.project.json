@@ -2,7 +2,6 @@
   "name": "EZReplicator",
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "$ignoreUnknownInstances": true,
       "EZReplicator": {
