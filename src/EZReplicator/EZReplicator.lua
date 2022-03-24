@@ -9,6 +9,14 @@
 	//////////////////////////////////////////////////
 
 		EZReplicator.CLIENT_TABLE_FILTER_TYPES    [dictionary]
+
+		This is a dictionary that contains keywords for Subscription client tables.
+		The dictionary contains the following keys:
+
+		{
+			BLACKLIST = "BLACKLIST",
+			WHITELIST = "WHITELIST",
+		}
 		
 	//////////////////////////////////////////////////
 	EZReplicator Functions
@@ -79,6 +87,50 @@
 
 		This function sends a signal with the given name to all the clients connected to the server.
 
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:GetClientSignal():
+		
+		EZReplicator:GetClientSignal(
+			signalName [string]
+		) --> [RBXScriptSignal] (player [Player], ... [any])
+
+		This function gets an RBXScriptSignal that is fired when the client sends a signal with the
+		same signal name to the server.
+		When connecting a function to the RBXScriptSignal returned by this function, it is important
+		to add parameters for the player and arguments.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:RequestDataFromClient():
+		
+		EZReplicator:RequestDataFromClient(
+			player [Player],
+			dataKey [string],
+			... [any]
+		) --> [boolean], [any]
+
+		This function gets data from the client by requesting data with the given dataKey.
+		This function will return a boolean value and another value data value. The boolean
+		signifies whether the request was successfully returned by the client.
+		If a handler for the given dataKey was not made in the client side, this function will
+		return nil for the data.
+
+	---------------------------------------------------------------------------------------------------------
+
+	EZReplicator:SetClientRequestHandler():
+
+		EZReplicator:SetClientRequestHandler(
+			dataKey [string],
+			func [function](player [Player], ... [any]) --> any
+		) --> nil
+
+		This function sets a request handler for data requested by the client.
+		When the client requests data from the server with the given dataKey, this handler will be called.
+		The handler function must be a function with a player parameter followed by any argument 
+		parameter(s).
+
+	---------------------------------------------------------------------------------------------------------
 ]]
 
 
