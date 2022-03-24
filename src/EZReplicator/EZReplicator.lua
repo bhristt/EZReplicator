@@ -1,5 +1,8 @@
 --// written by bhristt (march 13 2022)
 --// updated: march 19 2022
+--// see the github repository here: https://github.com/bhristt/EZReplicator
+--// see the full documentation here: https://bhristt.github.io/EZReplicator
+--// get the roblox model here: https://www.roblox.com/library/9130689730/EZReplicator
 --[[
 	
 	API:
