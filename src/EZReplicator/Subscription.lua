@@ -116,7 +116,7 @@ function ClientTableFunc:GetFilteredPlayers(filterType: string): {Player}
 	local filter = {
 		[CLIENT_TABLE_FILTER_TYPES.WHITELIST] = function()
 			local tbl = {}
-			for _, plr in iparis(self) do
+			for _, plr in ipairs(self) do
 				table.insert(tbl, plr)
 			end
 		end,

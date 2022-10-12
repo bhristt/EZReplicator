@@ -392,7 +392,7 @@ Subscription:UpdateSubscription(
 --    [string]: [any]
 --  }
 ```
-Sets the property table of the `Subscription` to the give property table. As it does this, it fires the changed signals for each property that is changed.
+Sets the property table of the `Subscription` to the given property table. As it does this, it fires the changed signals for each property that is changed.
 
 !!! notice
     This function should not be used at all if the `Subscription` is being replicated on the client. It is intended to only be used by the EZReplicator module for updating `Subscription` properties!

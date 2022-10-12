@@ -1,5 +1,5 @@
 --// written by bhristt (march 13 2022)
---// updated: march 24 2022
+--// updated: October 12 2022
 --// see the github repository here: https://github.com/bhristt/EZReplicator
 --// see the full documentation here: https://bhristt.github.io/EZReplicator
 --// get the roblox model here: https://www.roblox.com/library/9130689730/EZReplicator
@@ -345,7 +345,7 @@
 
 	Subscription:SetProperty():
 		
-		Subscription:RemoveProperty(
+		Subscription:SetProperty(
 			propIndex [string],
 			propValue [any]
 		) --> nil
@@ -368,7 +368,110 @@
 
 	--------------------------------------------------------------------------------------------------------
 
-	** To be continued **
+	Subscription:AddPlayerToClientTbl():
+
+		Subscription:AddPlayerToClientTbl(
+			player [Player]
+		) --> nil
+
+		This function adds the given player to the Subscription client table. If the client
+		table already contains the player, then this function does nothing.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:GetClientTbl():
+
+		Subscription:GetClientTbl() --> {
+			[number]: [Player]
+		}
+
+		This function returns a copy of the client table.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:GetFilteredClientTbl():
+
+		Subscription:GetFilteredClientTbl() --> {
+			[number]: [Player]
+		}
+
+		This function returns a copy of the filtered client table. The filtering for this
+		table comes from the function Subscription.ClientTableFilterType property.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:IterateThroughFilteredCTbl():
+
+		Subscription:IterateThroughFilteredCTbl(
+			func [function]
+		) --> nil
+
+		func [function]:
+			(plr [Player]) --> nil
+
+		This function iterates the given function through the filtered client table.
+		The given function should have a player parameter to reference the player
+		in the filtered client table.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:RemovePlayerFromClientTbl():
+
+		Subscription:RemovePlayerFromClientTbl(
+			player [Player]
+		) --> nil
+
+		This function removes the given player from the Subscription client table. If the given
+		player is already not in the client table, this function does nothing.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:UpdateSubscription():
+
+		Subscription:UpdateSubscription(
+			propTable [table]
+		) --> nil
+
+		propTable [table]:
+			{
+				[string]: [any]
+			}
+
+		This function sets the property table of the Subscription to the given property table.
+		As it does this, it fires the changed signals for each property that is changed. This function
+		should not be used at all if the Subscription is being replicated on the client. It is intended
+		to only be used by the EZReplicator module for updating Subscription properties.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:Init():
+
+		Subscription:Init() --> nil
+
+		Initializes the Subscription object. This is a function called once at the creation of the
+		Subscription object. This function does nothing after it is called the first time.
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:GetProperty(): 
+
+		Subscription:GetProperty(
+			propIndex [string]
+		) --> [any]
+
+		This function returns the property with the given index from the Subscription
+
+	--------------------------------------------------------------------------------------------------------
+
+	Subscription:GetPropertyChangedSignal():
+
+		Subscription:GetPropertyChangedSignal(
+			propIndex [string]
+		) --> [RBXScriptSignal]
+
+		This function gets an RBXScriptSignal for the property in the Subscription with the
+		given index. This function will not throw an error if a signal for a non-existing property
+		is requested.
 
 ]]
 
@@ -783,43 +886,43 @@ function ReplicatorFunctions:Init()
 	if IS_SERVER then
 		--// setup server connection to all clients
 		--// sets up the remote event and remote function for the server
+		local clientSignalReceivedFunc = {
+			--// receives a custom signal from the client
+			--// fires the bindable event attached to the signal (if there is one)
+			--// if there isn't a bindable event attached to the signal, does nothing
+			[SERVER_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_CLIENT] = function(player: Player, customSignalName: string, ...: any)
+				local signalListeners = pself.SignalListeners
+				local listener = signalListeners[customSignalName]
+				if listener ~= nil then
+					listener:Fire(player, ...)
+				end
+			end,
+		}
+		local onServerInvokeFunc = {
+			--// returns the subscription store of the server replicator
+			[SERVER_REQUESTS.GET_SUBSCRIPTION_CACHE] = function()
+				return pself.Subscriptions
+			end,
+			--// receives a custom request from the client
+			--// returns whatever the handler for the given dataKey returns
+			[SERVER_REQUESTS.RECEIVE_CUSTOM_REQUEST_FROM_CLIENT] = function(player: Player, dataKey: string, ...: any)
+				local requestHandlers = pself.RequestHandlers
+				local handler = requestHandlers[dataKey]
+				if handler ~= nil then
+					return handler(player, ...)
+				else
+					warn(string.format(WARNINGS.SERVER_REQUEST_HANDLER_UNDEFINED, "Did not find server handler for dataKey '" .. tostring(dataKey) .. "'"))
+				end
+			end,
+		}
 		connections[SERVER_CONNECTIONS.CLIENT_SIGNAL_RECEIVED] = signal.OnServerEvent:Connect(function(player: Player, signalName: string, ...: any)
-			local func = {
-				--// receives a custom signal from the client
-				--// fires the bindable event attached to the signal (if there is one)
-				--// if there isn't a bindable event attached to the signal, does nothing
-				[SERVER_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_CLIENT] = function(customSignalName: string, ...: any)
-					local signalListeners = pself.SignalListeners
-					local listener = signalListeners[customSignalName]
-					if listener ~= nil then
-						listener:Fire(player, ...)
-					end
-				end,
-			}
-			if func[signalName] ~= nil then
-				func[signalName](...)
+			if clientSignalReceivedFunc[signalName] ~= nil then
+				clientSignalReceivedFunc[signalName](player, ...)
 			end
 		end)
 		request.OnServerInvoke = function(player: Player, requestName: string, ...: any)
-			local func = {
-				--// returns the subscription store of the server replicator
-				[SERVER_REQUESTS.GET_SUBSCRIPTION_CACHE] = function()
-					return pself.Subscriptions
-				end,
-				--// receives a custom request from the client
-				--// returns whatever the handler for the given dataKey returns
-				[SERVER_REQUESTS.RECEIVE_CUSTOM_REQUEST_FROM_CLIENT] = function(dataKey: string, ...: any)
-					local requestHandlers = pself.RequestHandlers
-					local handler = requestHandlers[dataKey]
-					if handler ~= nil then
-						return handler(player, ...)
-					else
-						warn(string.format(WARNINGS.SERVER_REQUEST_HANDLER_UNDEFINED, "Did not find server handler for dataKey '" .. tostring(dataKey) .. "'"))
-					end
-				end,
-			}
-			if func[requestName] ~= nil then
-				return func[requestName](...)
+			if onServerInvokeFunc[requestName] ~= nil then
+				return onServerInvokeFunc[requestName](player, ...)
 			end
 		end
 		--// setup subscription store connection table
@@ -828,81 +931,81 @@ function ReplicatorFunctions:Init()
 	else
 		--// setup client connection to the server
 		--// sets up the remote event and remote function for the client
-		connections[CLIENT_CONNECTIONS.SERVER_SIGNAL_RECEIVED] = signal.OnClientEvent:Connect(function(signalName: string, ...: any)
-			local func = {
-				--// creates a subscription with the given name and property table
-				--// stores the subscription in the client subscription store
-				[CLIENT_SIGNALS.CREATE_SUBSCRIPTION] = function(subscriptionName: string, propTable: {[string]: any})
+		local serverSignalReceivedFunc = {
+			--// creates a subscription with the given name and property table
+			--// stores the subscription in the client subscription store
+			[CLIENT_SIGNALS.CREATE_SUBSCRIPTION] = function(subscriptionName: string, propTable: {[string]: any})
+				local bindables = pself.Bindables
+				local subscriptionAddedBindable = bindables[REPLICATOR_BINDABLE_NAMES.SUBSCRIPTION_ADDED]
+				local subscriptions = pself.Subscriptions
+				local newSubscription = Subscription.new(propTable)
+				subscriptions:AddSubscription(subscriptionName, newSubscription)
+				subscriptionAddedBindable:Fire(newSubscription)
+			end,
+			--// updates the subscription with the given name and changes the given property
+			--// should be given a property index and a property value
+			[CLIENT_SIGNALS.UPDATE_SUBSCRIPTION] = function(subscriptionName: string, propIndex: string, propVal: any)
+				local subscriptions = pself.Subscriptions
+				local subscription = subscriptions:GetSubscription(subscriptionName)
+				if subscription ~= nil then
+					local subscriptionProperties = subscription.Properties:GetProperties()
+					subscriptionProperties[propIndex] = propVal
+					subscription:UpdateSubscription(subscriptionProperties)
+				end
+			end,
+			--// updates the subscription with the given name and updates all properties
+			--// should be given a full property table
+			[CLIENT_SIGNALS.UPDATE_SUBSCRIPTION_PACKAGE] = function(subscriptionName, propTable: {[string]: any})
+				local subscriptions = pself.Subscriptions
+				local subscription = subscriptions:GetSubscription(subscriptionName)
+				if subscription ~= nil then
+					subscription:UpdateSubscription(propTable)
+				end
+			end,
+			--// removes the subscription with the given name
+			--// if the subscription does not exist, does nothing
+			[CLIENT_SIGNALS.REMOVE_SUBSCRIPTION] = function(subscriptionName: string)
+				local subscriptions = pself.Subscriptions
+				local subscription = subscriptions:GetSubscription(subscriptionName)
+				if subscription ~= nil then
 					local bindables = pself.Bindables
-					local subscriptionAddedBindable = bindables[REPLICATOR_BINDABLE_NAMES.SUBSCRIPTION_ADDED]
-					local subscriptions = pself.Subscriptions
-					local newSubscription = Subscription.new(propTable)
-					subscriptions:AddSubscription(subscriptionName, newSubscription)
-					subscriptionAddedBindable:Fire(newSubscription)
-				end,
-				--// updates the subscription with the given name and changes the given property
-				--// should be given a property index and a property value
-				[CLIENT_SIGNALS.UPDATE_SUBSCRIPTION] = function(subscriptionName: string, propIndex: string, propVal: any)
-					local subscriptions = pself.Subscriptions
-					local subscription = subscriptions:GetSubscription(subscriptionName)
-					if subscription ~= nil then
-						local subscriptionProperties = subscription.Properties:GetProperties()
-						subscriptionProperties[propIndex] = propVal
-						subscription:UpdateSubscription(subscriptionProperties)
-					end
-				end,
-				--// updates the subscription with the given name and updates all properties
-				--// should be given a full property table
-				[CLIENT_SIGNALS.UPDATE_SUBSCRIPTION_PACKAGE] = function(subscriptionName, propTable: {[string]: any})
-					local subscriptions = pself.Subscriptions
-					local subscription = subscriptions:GetSubscription(subscriptionName)
-					if subscription ~= nil then
-						subscription:UpdateSubscription(propTable)
-					end
-				end,
-				--// removes the subscription with the given name
-				--// if the subscription does not exist, does nothing
-				[CLIENT_SIGNALS.REMOVE_SUBSCRIPTION] = function(subscriptionName: string)
-					local subscriptions = pself.Subscriptions
-					local subscription = subscriptions:GetSubscription(subscriptionName)
-					if subscription ~= nil then
-						local bindables = pself.Bindables
-						local subscriptionRemovedBindable = bindables[REPLICATOR_BINDABLE_NAMES.SUBSCRIPTION_REMOVED]
-						subscriptions:RemoveSubscription(subscriptionName)
-						subscriptionRemovedBindable:Fire(subscription)
-					end
-				end,
-				--// receives a custom signal from the server
-				--// fires the bindable event attached to the signal (if there is one)
-				--// if there isn't a bindable event attached to the signal, does nothing
-				[CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER] = function(customSignalName: string, ...: any)
-					local signalListeners = pself.SignalListeners
-					local listener = signalListeners[customSignalName]
-					if listener ~= nil then
-						listener:Fire(...)
-					end
-				end,
-			}
-			if func[signalName] ~= nil then
-				func[signalName](...)
+					local subscriptionRemovedBindable = bindables[REPLICATOR_BINDABLE_NAMES.SUBSCRIPTION_REMOVED]
+					subscriptions:RemoveSubscription(subscriptionName)
+					subscriptionRemovedBindable:Fire(subscription)
+				end
+			end,
+			--// receives a custom signal from the server
+			--// fires the bindable event attached to the signal (if there is one)
+			--// if there isn't a bindable event attached to the signal, does nothing
+			[CLIENT_SIGNALS.RECEIVE_CUSTOM_SIGNAL_FROM_SERVER] = function(customSignalName: string, ...: any)
+				local signalListeners = pself.SignalListeners
+				local listener = signalListeners[customSignalName]
+				if listener ~= nil then
+					listener:Fire(...)
+				end
+			end,
+		}
+		local onClientInvokeFunc = {
+			--// receives a custom request from the server
+			--// returns whatever the handler for the given dataKey returns
+			[CLIENT_REQUESTS.RECEIVE_CUSTOM_REQUEST_FROM_SERVER] = function(dataKey: string, ...: any)
+				local requestHandlers = pself.RequestHandlers
+				local handler = requestHandlers[dataKey]
+				if handler ~= nil then
+					return handler(...)
+				else
+					warn(string.format(WARNINGS.CLIENT_REQUEST_HANDLER_UNDEFINED, "Did not find client handler for dataKey '" .. tostring(dataKey) .. "'"))
+				end
+			end,
+		}
+		connections[CLIENT_CONNECTIONS.SERVER_SIGNAL_RECEIVED] = signal.OnClientEvent:Connect(function(signalName: string, ...: any)
+			if serverSignalReceivedFunc[signalName] ~= nil then
+				serverSignalReceivedFunc[signalName](...)
 			end
 		end)
 		request.OnClientInvoke = function(requestName: string, ...: any)
-			local func = {
-				--// receives a custom request from the server
-				--// returns whatever the handler for the given dataKey returns
-				[CLIENT_REQUESTS.RECEIVE_CUSTOM_REQUEST_FROM_SERVER] = function(dataKey: string, ...: any)
-					local requestHandlers = pself.RequestHandlers
-					local handler = requestHandlers[dataKey]
-					if handler ~= nil then
-						return handler(...)
-					else
-						warn(string.format(WARNINGS.CLIENT_REQUEST_HANDLER_UNDEFINED, "Did not find client handler for dataKey '" .. tostring(dataKey) .. "'"))
-					end
-				end,
-			}
-			if func[requestName] ~= nil then
-				return func[requestName](...)
+			if onClientInvokeFunc[requestName] ~= nil then
+				return onClientInvokeFunc[requestName](...)
 			end
 		end
 		--// begin loop for requesting data from the server
